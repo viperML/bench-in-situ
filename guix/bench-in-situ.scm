@@ -6,14 +6,10 @@
   #:use-module (guix git-download)
   #:use-module (guix utils))
 
-(define vcs-file?
-  (or (git-predicate (current-source-directory))
-      (const #t)))
-
 (define local-source
   (local-file "../." "source"
               #:recursive? #t
-              #:select? (git-predicate (current-source-directory))))
+              #:select? (git-predicate (string-append (current-source-directory) "/.."))))
 
 (define-public bench-in-situ
   (package

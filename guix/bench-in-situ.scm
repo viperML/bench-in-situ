@@ -4,12 +4,35 @@
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (guix packages)
   #:use-module (guix git-download)
-  #:use-module (guix utils))
+  #:use-module (guix utils)
+  #:use-module (ice-9 pretty-print))
+
+(define* (selector file stat)
+  (begin
+    (pretty-print file)
+    #f))
+
+(define location
+  (let* ((res (string-append (current-source-directory) "/..")))
+        (begin
+          (pretty-print res)
+          res)))
+
+(define selector2
+  (lambda (file stat)
+    (begin
+      (pretty-print file)
+      (let* ((res ((git-predicate location) 
+                   file stat)))
+        (begin
+          (pretty-print res)
+          res)))))
 
 (define local-source
-  (local-file "../." "source"
+  (local-file ".." "source"
               #:recursive? #t
-              #:select? (git-predicate (string-append (current-source-directory) "/.."))))
+              #:select? selector2))
+              ;; #:select? (git-predicate ".")))
 
 (define-public bench-in-situ
   (package

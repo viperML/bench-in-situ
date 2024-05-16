@@ -28,7 +28,7 @@
           (pretty-print res)
           res)))))
 
-(define local-source
+(define-public local-source
   (local-file ".." "source"
               #:recursive? #t
               #:select? selector2))

@@ -106,3 +106,5 @@ if(${PROJECT_NAME}_ENABLE_TESTS)
   enable_testing()
   add_subdirectory(test)
 endif(${PROJECT_NAME}_ENABLE_TESTS)
+
+install(TARGETS ${PROJECT_NAME})

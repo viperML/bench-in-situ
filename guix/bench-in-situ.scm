@@ -5,34 +5,20 @@
   #:use-module (guix packages)
   #:use-module (guix git-download)
   #:use-module (guix utils)
-  #:use-module (ice-9 pretty-print))
-
-(define* (selector file stat)
-  (begin
-    (pretty-print file)
-    #f))
+  #:use-module (gnu packages mpi)
+  #:use-module (gnu packages cpp)
+  #:use-module (gnu packages serialization)
+  #:use-module (gnu packages pkg-config)
+  #:use-module (guix-hpc packages pdi)
+  #:use-module (guix-hpc packages utils))
 
 (define location
-  (let* ((res (string-append (current-source-directory) "/..")))
-        (begin
-          (pretty-print res)
-          res)))
-
-(define selector2
-  (lambda (file stat)
-    (begin
-      (pretty-print file)
-      (let* ((res ((git-predicate location) 
-                   file stat)))
-        (begin
-          (pretty-print res)
-          res)))))
+  (pk 'loc (current-source-directory)))
 
 (define-public local-source
   (local-file ".." "source"
               #:recursive? #t
-              #:select? selector2))
-              ;; #:select? (git-predicate ".")))
+              #:select? (git-predicate (pk 'l (dirname location)))))
 
 (define-public bench-in-situ
   (package
@@ -46,9 +32,15 @@
         #:configure-flags #~(list "-DSESSION=MPI_SESSION"
                                   "-DKokkos_ENABLE_OPENMP=ON"
                                   "-DEuler_ENABLE_PDI=ON")))
-    (native-inputs
-      (list))
-    (inputs (list))
+    (native-inputs (list paraconf
+                         pkg-config))
+    (inputs (list openmpi
+                  pdi
+                  pdiplugin-mpi
+                  pdiplugin-user-code
+                  pdiplugin-decl-hdf5-parallel
+                  kokkos
+                  libyaml))
     (synopsis "")
     (description "")
     (home-page "")

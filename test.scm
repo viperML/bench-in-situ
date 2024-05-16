@@ -2,7 +2,10 @@
              (guix gexp)
              (guix utils))
 
+(define s
+  "/home/ayats/Documents/bench-in-situ")
+
 (local-file
-  (current-source-directory) "source"
+  s "source"
   #:recursive? #t
-  #:select? (git-predicate (current-source-directory)))
+  #:select? (git-predicate s))

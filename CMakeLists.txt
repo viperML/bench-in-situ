@@ -92,6 +92,8 @@ if(${PROJECT_NAME}_ENABLE_PDI)
 endif(${PROJECT_NAME}_ENABLE_PDI)
 set_target_properties(main PROPERTIES ENABLE_EXPORTS TRUE)
 
+install(TARGETS main)
+
 if(${PROJECT_NAME}_ENABLE_DOCUMENTATION)
   find_package(Doxygen REQUIRED)
 

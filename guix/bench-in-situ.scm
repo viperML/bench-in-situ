@@ -32,7 +32,7 @@
         #:configure-flags ,#~(list "-DSESSION=MPI_SESSION"
                                    "-DKokkos_ENABLE_OPENMP=ON"
                                    "-DEuler_ENABLE_PDI=ON")
-        #:validate-runpath? #f
+        ;; #:validate-runpath? #t
         #:phases (modify-phases %standard-phases
                   (add-after 'unpack 'unvendor
                     (lambda* (#:key outputs inputs #:allow-other-keys)
@@ -40,15 +40,9 @@
                              (inih (assoc-ref inputs "libinih")))
                         (begin
                           (pk inputs)
-                          (pk outputs))))))))
-    ;; FIXME
-                          ;; (pk 'inih inih)
-                          ;; (delete-file-recursively "lib")
-                          ;; (mkdir "lib")
-                          ;; (symlink inih "lib/inih")
-                          ;; (pk "done"))))))))
-                          ;;;
-                          ;; (exit 1))))))))
+                          (pk outputs)
+                          (delete-file-recursively "lib/kokkos")
+                          (delete-file-recursively "lib/pdi"))))))))
     (native-inputs (list paraconf
                          pkg-config))
     (inputs (list openmpi

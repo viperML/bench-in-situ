@@ -22,28 +22,6 @@
               #:recursive? #t
               #:select? (git-predicate (dirname location))))
 
-(define-public dms-src
-  (let* ((commit "581e551bc719fe768cbbd522f3fa8946e426d71d")
-         (version "1.0.0")
-         (revision "1"))
-    (package
-      (name "dms-src")
-      (version "0.0.0")
-      (source
-        (origin
-          (method git-fetch)
-          (uri (git-reference
-                (url "https://gitlab.erc-atmo.eu/remi.bourgeois/dms")
-                (commit commit)))
-          (file-name (git-file-name name version))
-          (sha256
-           (base32 "1xl5vdh08z6yp2fxarjh4hkcdp3znr2p1mv0ygfmnbbzgvmmi2m1"))))
-      (build-system copy-build-system)
-      (synopsis "")
-      (description "")
-      (home-page "")
-      (license license:expat))))
-
 (define-public bench-in-situ
   (package
     (name "bench-in-situ")
@@ -65,13 +43,9 @@
                           (pk inputs)
                           (pk outputs)
                           (delete-file-recursively "lib/kokkos")
-                          (delete-file-recursively "lib/pdi")
-                          (delete-file-recursively "lib/dms")
-                          (symlink (assoc-ref inputs "dms-src") "lib/dms"))))))))
+                          (delete-file-recursively "lib/pdi"))))))))
     (native-inputs (list paraconf
-                         pkg-config
-
-                         dms-src)) ;; FIXME
+                         pkg-config))
     (inputs (list openmpi
                   pdi
                   pdiplugin-mpi

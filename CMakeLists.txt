@@ -78,7 +78,7 @@ if(${PROJECT_NAME}_ENABLE_TRILINOS)
   target_include_directories(Trilinos SYSTEM INTERFACE ${Trilinos_INCLUDE_DIRS} ${Trilinos_TPL_INCLUDE_DIRS})
 else(${PROJECT_NAME}_ENABLE_TRILINOS)
   # add_subdirectory(${PROJECT_SOURCE_DIR}/lib/kokkos)
-  find_package(Kokkos)
+  find_package(Kokkos REQUIRED)
 endif(${PROJECT_NAME}_ENABLE_TRILINOS)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib/dms)
@@ -87,7 +87,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
 # Main file
 add_executable(main src/main.cpp)
-target_link_libraries(main ${PROJECT_NAME})
+target_link_libraries(main ${PROJECT_NAME} Kokkos::kokkos)
 if(${PROJECT_NAME}_ENABLE_PDI)
   target_compile_definitions(main PUBLIC ${PROJECT_NAME}_ENABLE_PDI)
 endif(${PROJECT_NAME}_ENABLE_PDI)

@@ -87,7 +87,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
 # Main file
 add_executable(main src/main.cpp)
-target_link_libraries(main ${PROJECT_NAME} Kokkos::kokkos)
+target_link_libraries(main ${PROJECT_NAME})
 if(${PROJECT_NAME}_ENABLE_PDI)
   target_compile_definitions(main PUBLIC ${PROJECT_NAME}_ENABLE_PDI)
 endif(${PROJECT_NAME}_ENABLE_PDI)

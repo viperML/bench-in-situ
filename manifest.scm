@@ -2,11 +2,10 @@
              (ice-9 match))
 
 (define stdenv
-  (map
-    (lambda* (pkg)
-      (match pkg
-        ((_ value _ ...)
-         value)))
+  (map (lambda* (pkg)
+         (match pkg
+           ((_ value _ ...)
+            value)))
     (standard-packages)))
 
 (concatenate-manifests

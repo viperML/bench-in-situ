@@ -10,7 +10,6 @@
 
 (concatenate-manifests
   (list
-    (packages->manifest stdenv)
     (specifications->manifest
       (list
         "bash"
@@ -25,5 +24,6 @@
         "kokkos"
         "paraconf"
         "pkg-config"
-        "libyaml"))))
+        "libyaml"))
+    (packages->manifest stdenv)))
 

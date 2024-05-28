@@ -15,6 +15,7 @@
         "bash"
         "gcc-toolchain"
 
+        ;; build time deps
         "cmake"
         "openmpi@4"
         "pdi"
@@ -24,6 +25,9 @@
         "kokkos"
         "paraconf"
         "pkg-config"
-        "libyaml"))
+        "libyaml"
+
+        ;; runtime deps
+        "python-dask"))
     (packages->manifest stdenv)))
 

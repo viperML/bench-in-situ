@@ -9,26 +9,36 @@
 
 set -eux
 
+IMAGE="$SINGULARITY_ALLOWED_DIR/pack.sif"
+
 run_guix() {
   pushd ~
 
   singularity \
     exec \
     --bind /gpfswork:/gpfswork \
-    "$SINGULARITY_ALLOWED_DIR/pack.sif" \
+    "$IMAGE" \
     "$@"
 
   popd
 }
 
 srun_guix() {
-  
+  IFS=$'\n' read -d "" -r -a buf <<< "${*//--/$'\n'}" || true
+  read -r -a slurm_args <<< "${buf[0]}" || true
+  read -r -a singu_args <<< "${buf[1]}" || true
+  srun \
+    "${slurm_args[@]}" \
+    singularity \
+    exec \
+    --bind /gpfswork:/gpfswork \
+    "$IMAGE" \
+    "${singu_args[@]}"
 }
 
-# sanity check
-run_guix uname -a
-
-BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../.. && pwd)"
+IFS='=' read -r -a arr <<< "$(scontrol show job "$SLURM_JOB_ID" | grep Command)" || true
+SCRIPT="${arr[1]}"
+BASE_DIR="$(cd "$(dirname "$SCRIPT")"/../.. && pwd)"
 WORKING_DIR="$BASE_DIR/working_dir"
 
 
@@ -47,20 +57,23 @@ echo "SIM_NODES=$SIM_NODES"
 
 
 # move to working directory
+mkdir "$WORKING_DIR"
 cd "$WORKING_DIR"
 
-
-srun \
-  -N 1 \
-  -n 1 \
-  -c 1 \
-  -r 0
-  dask scheduler --protocol tcp --scheduler-file=${SCHEFILE} >> ${PREFIX}_dask-scheduler.o &
+srun_guix \
+  -N 1 -n 1 -c 1 -r 0 \
+  -- \
+  dask scheduler \
+    --protocol tcp \
+    --scheduler-file=$SCHEFILE \
+  >> ${PREFIX}_dask-scheduler.o &
 
 # Wait for the SCHEFILE to be created
 while ! [ -f ${SCHEFILE} ]; do
   sleep 3
 done
+
+exit 1
 
 # dask workers
 srun -N ${DASK_WORKER_NODES} -n ${DASK_WORKER_NODES} -c 1 -r 1 dask worker --protocol tcp --local-directory /tmp --scheduler-file=${SCHEFILE} >> ${PREFIX}_dask-worker.o &

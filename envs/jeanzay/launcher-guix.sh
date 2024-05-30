@@ -11,17 +11,17 @@ set -eux
 
 IMAGE="$SINGULARITY_ALLOWED_DIR/pack.sif"
 
-run_guix() {
-  pushd ~
+# run_guix() {
+#   pushd ~
 
-  singularity \
-    exec \
-    --bind /gpfswork:/gpfswork \
-    "$IMAGE" \
-    "$@"
+#   singularity \
+#     exec \
+#     --bind /gpfswork:/gpfswork \
+#     "$IMAGE" \
+#     "$@"
 
-  popd
-}
+#   popd
+# }
 
 srun_guix() {
   IFS=$'\n' read -d "" -r -a buf <<< "${*//--/$'\n'}" || true
@@ -57,8 +57,22 @@ echo "SIM_NODES=$SIM_NODES"
 
 
 # move to working directory
-mkdir "$WORKING_DIR"
+mkdir -p "$WORKING_DIR"
 cd "$WORKING_DIR"
+
+pwd
+
+srun_guix \
+  -r 0 \
+  -- \
+  pwd
+
+srun_guix \
+  -N 1 -n 1 -c 1 -r 0 \
+  -- \
+  pwd
+
+exit 1
 
 srun_guix \
   -N 1 -n 1 -c 1 -r 0 \
@@ -69,9 +83,11 @@ srun_guix \
   >> ${PREFIX}_dask-scheduler.o &
 
 # Wait for the SCHEFILE to be created
-while ! [ -f ${SCHEFILE} ]; do
+ls -la
+while [[ ! -f $SCHEFILE ]]; do
   sleep 3
 done
+
 
 exit 1
 

@@ -28,6 +28,7 @@
         "libyaml"
 
         ;; runtime deps
-        "python-dask"))
+        "python-dask"
+        "python-distributed"))
     (packages->manifest stdenv)))
 

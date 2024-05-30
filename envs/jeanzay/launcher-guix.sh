@@ -3,35 +3,43 @@
 #SBATCH --job-name=bench_insitu
 #SBATCH --output=%x_%j.out
 #SBATCH --time=00:10:00
+#SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=10
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=8
 #SBATCH --hint=nomultithread
 
 set -eux
 
 IMAGE="$SINGULARITY_ALLOWED_DIR/pack.sif"
 
-# run_guix() {
-#   pushd ~
-
-#   singularity \
-#     exec \
-#     --bind /gpfswork:/gpfswork \
-#     "$IMAGE" \
-#     "$@"
-
-#   popd
-# }
+bindflags=()
+for path in /*; do
+  if [[ "$path" == /gp* ]]; then
+    bindflags+=("--bind" "$path:$path")
+  fi
+done
 
 srun_guix() {
-  IFS=$'\n' read -d "" -r -a buf <<< "${*//--/$'\n'}" || true
-  read -r -a slurm_args <<< "${buf[0]}" || true
-  read -r -a singu_args <<< "${buf[1]}" || true
+  local slurm_args=()
+  local singu_args=()
+  local reading=slurm
+  for arg in "$@"; do
+    if [[ "$arg" == "--" ]]; then
+      reading="singularity"
+      continue
+    fi
+    if [[ $reading == slurm ]]; then
+      slurm_args+=("$arg")
+    else
+      singu_args=("$arg")
+    fi
+  done
   srun \
     "${slurm_args[@]}" \
     singularity \
     exec \
-    --bind /gpfswork:/gpfswork \
+    "${bindflags[@]}" \
     "$IMAGE" \
     "${singu_args[@]}"
 }
@@ -60,26 +68,14 @@ echo "SIM_NODES=$SIM_NODES"
 mkdir -p "$WORKING_DIR"
 cd "$WORKING_DIR"
 
-pwd
-
-srun_guix \
-  -r 0 \
-  -- \
-  pwd
 
 srun_guix \
   -N 1 -n 1 -c 1 -r 0 \
   -- \
-  pwd
-
-exit 1
-
-srun_guix \
-  -N 1 -n 1 -c 1 -r 0 \
-  -- \
-  dask scheduler \
-    --protocol tcp \
-    --scheduler-file=$SCHEFILE \
+  dask \
+  scheduler \
+  --protocol tcp \
+  --scheduler-file $SCHEFILE \
   >> ${PREFIX}_dask-scheduler.o &
 
 # Wait for the SCHEFILE to be created
@@ -87,18 +83,19 @@ ls -la
 while [[ ! -f $SCHEFILE ]]; do
   sleep 3
 done
+echo "done"
 
 
 exit 1
 
-# dask workers
-srun -N ${DASK_WORKER_NODES} -n ${DASK_WORKER_NODES} -c 1 -r 1 dask worker --protocol tcp --local-directory /tmp --scheduler-file=${SCHEFILE} >> ${PREFIX}_dask-worker.o &
+# # dask workers
+# srun -N ${DASK_WORKER_NODES} -n ${DASK_WORKER_NODES} -c 1 -r 1 dask worker --protocol tcp --local-directory /tmp --scheduler-file=${SCHEFILE} >> ${PREFIX}_dask-worker.o &
 
-# insitu
-srun -N 1 -n 1 -c 1 -r $(($DASK_WORKER_NODES+1)) python -O in-situ/fft_updated.py >> ${PREFIX}_client.o &
-client_pid=$!
+# # insitu
+# srun -N 1 -n 1 -c 1 -r $(($DASK_WORKER_NODES+1)) python -O in-situ/fft_updated.py >> ${PREFIX}_client.o &
+# client_pid=$!
 
-# simulation
-srun -N ${SIM_NODES} -n ${SIM_PROC} -r $(($DASK_WORKER_NODES+2)) build/main ${BASE_DIR}/envs/jeanzay/setup.ini ${BASE_DIR}/envs/jeanzay/io_deisa.yml --kokkos-map-device-id-by=mpi_rank &
-simu_pid=$!
-wait $simu_pid
+# # simulation
+# srun -N ${SIM_NODES} -n ${SIM_PROC} -r $(($DASK_WORKER_NODES+2)) build/main ${BASE_DIR}/envs/jeanzay/setup.ini ${BASE_DIR}/envs/jeanzay/io_deisa.yml --kokkos-map-device-id-by=mpi_rank &
+# simu_pid=$!
+# wait $simu_pid

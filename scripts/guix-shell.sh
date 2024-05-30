@@ -1,13 +1,17 @@
 #! /usr/bin/env bash
 set -eux
 
-cd ~
+bindflags=()
+for path in /*; do
+  if [[ "$path" == /gp* ]]; then
+    bindflags+=("--bind" "$path:$path")
+  fi
+done
 
 exec srun \
     --pty \
-    --partition prepost \
     singularity \
     exec \
-    --bind /gpfswork:/gpfswork \
+    "${bindflags[@]}" \
     "$SINGULARITY_ALLOWED_DIR/pack.sif" \
     bash -l
